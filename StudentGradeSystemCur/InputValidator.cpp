@@ -2,6 +2,7 @@
 #include <iostream>
 #include <regex>
 #include <sstream>
+#include <algorithm>
 #include <cstdio>
 
 using namespace std;
@@ -10,7 +11,8 @@ string InputValidator::getString(const string& prompt, bool allowEmpty) {
     string s;
     while (true) {
         cout << prompt;
-        getline(cin >> ws, s);
+        cin >> ws; // Пропускаем пробелы
+        getline(cin, s);
         if (!allowEmpty && s.empty()) {
             cout << "Ошибка: поле не может быть пустым!\n";
         } else {
@@ -24,7 +26,8 @@ int InputValidator::getInt(const string& prompt, int min, int max) {
     int value;
     while (true) {
         cout << prompt;
-        getline(cin >> ws, input);
+        cin >> ws; // Пропускаем пробелы
+        getline(cin, input);
         stringstream ss(input);
         if (ss >> value && ss.eof() && value >= min && value <= max) {
             return value;
@@ -61,5 +64,92 @@ string InputValidator::getLogin(const string& prompt) {
 }
 
 string InputValidator::getPassword(const string& prompt) {
-    return getString(prompt);
+    while (true) {
+        string pass = getString(prompt);
+        if (pass.length() < 3) {
+            cout << "Пароль должен содержать минимум 3 символа!\n";
+            continue;
+        }
+        if (pass.find(',') != string::npos) {
+            cout << "Пароль не может содержать запятую!\n";
+            continue;
+        }
+        return pass;
+    }
+}
+
+string InputValidator::getFullName(const string& prompt) {
+    while (true) {
+        string name = getString(prompt);
+        // Уберём начальные/конечные пробелы
+        auto first = name.find_first_not_of(" \t");
+        auto last = name.find_last_not_of(" \t");
+        if (first == string::npos) {
+            cout << "ФИО не может состоять только из пробелов!\n";
+            continue;
+        }
+        name = name.substr(first, last - first + 1);
+
+        if (name.length() < 2) {
+            cout << "ФИО должно содержать минимум 2 символа!\n";
+            continue;
+        }
+
+        bool ok = true;
+        for (unsigned char c : name) {
+            // Разрешаем буквы любых алфавитов (байты >=128), а также пробел, дефис и апостроф
+            if (c >= 128) continue; // часть UTF-8, принимаем
+            if (isalpha(c) || c == ' ' || c == '-' || c == '\'') continue;
+            // Запрещаем цифры и знаки пунктуации
+            ok = false;
+            break;
+        }
+
+        if (ok) {
+            return name;
+        }
+        cout << "ФИО может содержать буквы, пробелы, дефисы и апострофы, без цифр и лишних символов!\n";
+    }
+}
+
+string InputValidator::getGroup(const string& prompt) {
+    while (true) {
+        string group = getString(prompt);
+        // Проверка: буквы и цифры, возможно дефисы
+        regex r(R"(^[А-Яа-яЁёA-Za-z0-9\-]+$)");
+        if (regex_match(group, r) && group.length() >= 1 && group.length() <= 20) {
+            return group;
+        }
+        cout << "Группа должна содержать только буквы, цифры и дефисы (1-20 символов)!\n";
+    }
+}
+
+string InputValidator::getSubject(const string& prompt) {
+    while (true) {
+        string subject = getString(prompt);
+        if (subject.length() < 2) {
+            cout << "Название предмета должно содержать минимум 2 символа!\n";
+            continue;
+        }
+        if (subject.length() > 50) {
+            cout << "Название предмета не должно превышать 50 символов!\n";
+            continue;
+        }
+        // Цифры не допускаются в названии предмета
+        if (subject.find_first_of("0123456789") != string::npos) {
+            cout << "Название предмета не должно содержать цифры!\n";
+            continue;
+        }
+        if (subject.find(',') != string::npos) {
+            cout << "Название предмета не может содержать запятую!\n";
+            continue;
+        }
+        return subject;
+    }
+}
+
+string InputValidator::toLower(const string& str) {
+    string result = str;
+    transform(result.begin(), result.end(), result.begin(), ::tolower);
+    return result;
 }

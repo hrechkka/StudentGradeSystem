@@ -9,4 +9,8 @@ public:
     static bool isValidDate(const std::string& date);
     static std::string getLogin(const std::string& prompt);
     static std::string getPassword(const std::string& prompt);
+    static std::string getFullName(const std::string& prompt);
+    static std::string getGroup(const std::string& prompt);
+    static std::string getSubject(const std::string& prompt);
+    static std::string toLower(const std::string& str);
 };

@@ -11,7 +11,10 @@ public:
                       const std::string& fullName, const std::string& group, bool isAdmin);
     
     std::vector<Student> getAllStudents() const;
+    std::vector<Student>& getStudentsRef();
     void saveAllStudents();
+    void loadGradesAndAttendance();
+    static std::string getDataPath(); // Получить базовый путь к папке data
 
 private:
     std::vector<Student> students;
